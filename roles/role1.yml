@@ -1,0 +1,8 @@
+---
+- hosts: local
+  connection: local
+  roles: 
+    - dev-vm
+  vars_prompt:
+    - name: "dev_username"
+      prompt: "What is the dev account username?"

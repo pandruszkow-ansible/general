@@ -1,0 +1,56 @@
+---
+# tasks file for dev-vm
+
+- name: Update all packages in the OS
+  apt:
+#    update_cache: yes #fixme: commented out for duration of dev to reduce time taken to run
+    upgrade: dist
+
+- name: Install VM utils
+  apt:
+    name:
+      - virtualbox-guest-dkms
+      - virtualbox-guest-utils
+      - virtualbox-guest-x11
+
+- name: Install Snap runtime
+  apt:
+    name: snapd
+
+- name: Install Git
+  apt:
+    name: git
+    
+- name: Download .gitconfig from [pandruszkow/SysadminStuff]
+  get_url:
+    url: https://raw.githubusercontent.com/pandruszkow/SysadminStuff/master/.gitconfigure
+    dest: "/home/{{ dev_username }}/.gitconfig" #variables must be quoted
+    owner: "{{ dev_username }}" #ensure dev user is the owner, otherwise the gitconfig is owned by root and this is bad
+    force: yes #if a .gitconfig already exists, overwrite with remote one
+    backup: yes #don't clobber an existing .gitconfig - move it aside with a timestamp, and then replace with this one
+
+- name: Download .gitconfig.machine template from [pandruszkow/SysadminStuff]
+  get_url:
+    url: https://raw.githubusercontent.com/pandruszkow/SysadminStuff/master/.gitconfigure.machine
+    dest: "/home/{{ dev_username }}/.gitconfig.machine" #variables must be quoted
+    owner: "{{ dev_username }}" #ensure dev user is the owner, otherwise the gitconfig is owned by root and this is bad
+    force: no #if a .gitconfig already exists, DO NOT overwrite with remote one. This file is machine-specific.
+    backup: yes #don't clobber an existing .gitconfig - move it aside with a timestamp, and then replace with this one
+
+- name: Install Java 11 SDK
+  apt:
+    name:
+      - openjdk-11-jre
+      - openjdk-11-jdk
+      - openjdk-11-doc
+      - openjdk-11-source
+
+- name: Uninstall Ubuntu MATE Welcome
+  command: snap remove ubuntu-mate-welcome removes=/snap/bin/ubuntu-mate-welcome
+  become: true
+
+- name: Install IntelliJ Community Edition (via Snap packages)
+  #TODO: replace this with an actual Snap module for Ansible once it comes out.
+  #      The current command appears to be idempotent.
+  command: snap install intellij-idea-community --classic --stable creates=/snap/bin/intellij-idea-community
+  become: true
